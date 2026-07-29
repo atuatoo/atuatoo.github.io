@@ -1,11 +1,19 @@
 <!doctype html>
 <html lang="ja">
 <head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JBQZ5L4VN6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JBQZ5L4VN6');
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#f2f0e9">
   <title>BLACKOUT — 重なったら即終了</title>
   <meta name="description" content="指で画面を黒く塗れ。自分の線に重なったら即ゲームオーバー。">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5617023093597498" crossorigin="anonymous"></script>
   <style>
     :root{color-scheme:light;--black:#090909;--paper:#f2f0e9;--red:#ff2d3f}
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -30,6 +38,12 @@
     .score small{font-size:.2em;letter-spacing:0}
     .reason{min-height:25px;margin:8px 0 19px;color:var(--red);font-weight:1000}
     .best{margin:0 0 20px;font-size:12px;font-weight:900;letter-spacing:1px}
+    .name{width:min(260px,85%);margin:0 0 13px;border:2px solid #111;border-radius:999px;background:#fff;color:#111;padding:13px 17px;outline:0;font-size:16px;font-weight:800;text-align:center}
+    .subbtn{margin-top:10px;background:transparent;color:#111;border:2px solid #111;box-shadow:none;padding:12px 22px}
+    .rank{position:absolute;z-index:6;inset:0;padding:18px;background:#090909db;display:grid;place-items:center}
+    .rank-card{position:relative;width:min(410px,100%);max-height:92%;overflow:auto;border-radius:24px;background:var(--paper);padding:25px 20px}
+    .rank-card h2{margin:0 0 15px;font-size:35px;letter-spacing:-2px}.close{position:absolute;right:14px;top:14px;min-width:0;width:39px;height:39px;padding:0;border-radius:50%;font-size:24px}
+    .rank-list{list-style:none;margin:0;padding:0;counter-reset:r}.rank-list li{counter-increment:r;display:grid;grid-template-columns:32px 1fr auto;gap:8px;align-items:center;padding:11px 6px;border-bottom:1px solid #0002}.rank-list li:before{content:counter(r);font-weight:1000;color:#777}.rank-list li:nth-child(1):before{content:"🥇"}.rank-list li:nth-child(2):before{content:"🥈"}.rank-list li:nth-child(3):before{content:"🥉"}.rank-list span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}.rank-list strong{font-size:21px;color:var(--red)}.rank-status{font-size:12px;color:#777}
     .countdown{position:absolute;z-index:2;inset:0;display:grid;place-items:center;font-size:clamp(100px,36vw,250px);font-weight:1000;pointer-events:none;color:var(--black)}
     .warning{position:absolute;z-index:2;left:50%;top:20px;translate:-50% 0;padding:7px 13px;border-radius:999px;background:var(--red);color:white;font-size:11px;font-weight:1000;letter-spacing:1px;pointer-events:none;animation:pulse .45s infinite alternate}
     [hidden]{display:none!important}
@@ -53,8 +67,9 @@
         <p class="kicker">EXTREME FINGER GAME</p>
         <h1>黒く<br>塗りつぶせ<span>重なったら即終了</span></h1>
         <p class="desc">20秒で塗った面積を競え。<br>自分の線に触れるな。指も離すな。</p>
+        <input id="playerName" class="name" maxlength="12" placeholder="なまえ" autocomplete="nickname">
         <button id="startBtn">激むずに挑戦 →</button>
-        <a class="back" href="index.html">← Tap99に戻る</a>
+        <button id="introRankBtn" class="subbtn">世界ランキング</button>
       </div>
       <div id="result" class="screen" hidden>
         <p class="kicker">GAME OVER</p>
@@ -63,16 +78,27 @@
         <div id="reason" class="reason">黒に触れた</div>
         <p class="best">BEST <span id="best">0.0</span>%</p>
         <button id="retryBtn">もう一度 →</button>
-        <a class="back" href="index.html">← Tap99に戻る</a>
+        <button id="resultRankBtn" class="subbtn">世界ランキング</button>
       </div>
+      <section id="ranking" class="rank" hidden>
+        <div class="rank-card">
+          <button id="closeRankBtn" class="close" aria-label="閉じる">×</button>
+          <p class="kicker">GLOBAL TOP 10</p>
+          <h2>世界ランキング</h2>
+          <ol id="rankList" class="rank-list"></ol>
+          <p id="rankStatus" class="rank-status">読み込み中…</p>
+        </div>
+      </section>
     </section>
   </main>
   <script>
     (() => {
       const DURATION=20, BRUSH=22, CELL=5, SAFE_DISTANCE=46;
+      const SUPABASE_URL="https://nhkiwmworkfbfkxcgrcf.supabase.co";
+      const SUPABASE_KEY="sb_publishable_1_g4MJPd99GF0YHeGyS0VA_H9CvIkGI";
       const $=id=>document.getElementById(id);
       const arena=$("arena"), canvas=$("canvas"), ctx=canvas.getContext("2d");
-      const intro=$("intro"), result=$("result"), countdown=$("countdown"), warning=$("warning");
+      const intro=$("intro"), result=$("result"), countdown=$("countdown"), warning=$("warning"),nameEl=$("playerName");
       let grid,cols,rows,painted=0,total=1,running=false,pointerId=null,last=null,distance=0,startAt=0,raf=0,dpr=1;
 
       function resize(){
@@ -130,6 +156,20 @@
         $("time").textContent=left.toFixed(1);
         if(left<=0)end("20秒クリア！");else raf=requestAnimationFrame(tick);
       }
+      async function submitScore(score){
+        const player=(localStorage.blackoutName||"PLAYER").slice(0,12);
+        try{await fetch(`${SUPABASE_URL}/rest/v1/blackout_scores`,{method:"POST",headers:{"apikey":SUPABASE_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify({player_name:player,score:Math.round(score*10)})})}catch{}
+      }
+      async function loadRanking(){
+        const list=$("rankList"),status=$("rankStatus");list.replaceChildren();status.textContent="読み込み中…";
+        try{
+          const res=await fetch(`${SUPABASE_URL}/rest/v1/blackout_scores?select=player_name,score,created_at&order=score.desc,created_at.asc&limit=10`,{headers:{"apikey":SUPABASE_KEY}});
+          if(!res.ok)throw Error();const rows=await res.json();
+          rows.forEach(row=>{const li=document.createElement("li"),name=document.createElement("span"),score=document.createElement("strong");name.textContent=row.player_name;score.textContent=(row.score/10).toFixed(1)+"%";li.append(name,score);list.append(li)});
+          status.textContent=rows.length?"世界上位10記録":"まだ記録がありません。世界1位になろう！";
+        }catch{status.textContent="ランキング準備中です"}
+      }
+      function openRanking(){$("ranking").hidden=false;loadRanking()}
       function end(why){
         if(!running)return;running=false;cancelAnimationFrame(raf);pointerId=null;
         const score=painted/total*100,best=Math.max(score,Number(localStorage.blackoutBest||0));
@@ -137,8 +177,10 @@
         $("finalScore").textContent=score.toFixed(1);$("best").textContent=best.toFixed(1);$("reason").textContent=why;
         setTimeout(()=>result.hidden=false,180);
         if(navigator.vibrate)navigator.vibrate(why==="20秒クリア！"?[40,40,80]:180);
+        submitScore(score);
       }
       async function start(){
+        localStorage.blackoutName=(nameEl.value.trim()||"PLAYER").slice(0,12);
         resize();intro.hidden=true;result.hidden=true;countdown.hidden=false;
         for(const n of ["3","2","1"]){countdown.textContent=n;await new Promise(r=>setTimeout(r,520))}
         countdown.textContent="GO";await new Promise(r=>setTimeout(r,260));countdown.hidden=true;
@@ -149,7 +191,11 @@
       canvas.addEventListener("pointermove",onMove);
       canvas.addEventListener("pointerup",onUp);
       canvas.addEventListener("pointercancel",onUp);
+      nameEl.value=localStorage.blackoutName||"";
       $("startBtn").addEventListener("click",start);$("retryBtn").addEventListener("click",start);
+      $("introRankBtn").addEventListener("click",openRanking);$("resultRankBtn").addEventListener("click",openRanking);
+      $("closeRankBtn").addEventListener("click",()=>$("ranking").hidden=true);
+      $("ranking").addEventListener("click",e=>{if(e.target.id==="ranking")e.currentTarget.hidden=true});
       addEventListener("resize",()=>{if(!running)resize()});resize();
     })();
   </script>
