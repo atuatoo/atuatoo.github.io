@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#f2f0e9">
+  <title>BLACKOUT — 重なったら即終了</title>
+  <meta name="description" content="指で画面を黒く塗れ。自分の線に重なったら即ゲームオーバー。">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5617023093597498" crossorigin="anonymous"></script>
+  <style>
+    :root{color-scheme:light;--black:#090909;--paper:#f2f0e9;--red:#ff2d3f}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--paper);font-family:Inter,system-ui,-apple-system,"Noto Sans JP",sans-serif;color:var(--black)}
+    body{touch-action:none}
+    .app{height:100dvh;display:grid;grid-template-rows:auto 1fr;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
+    header{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:0 5px 10px}
+    .brand{font-weight:1000;font-size:20px;letter-spacing:-1px}.brand span{color:var(--red)}
+    .stat{text-align:right}.stat small{display:block;font-size:8px;font-weight:900;letter-spacing:1.5px;color:#777}.stat strong{font-size:22px;font-variant-numeric:tabular-nums}
+    .arena{position:relative;min-height:0;overflow:hidden;border:3px solid var(--black);border-radius:24px;background:var(--paper);box-shadow:0 12px 40px #0002}
+    canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+    .noise{position:absolute;inset:0;pointer-events:none;opacity:.2;background-image:radial-gradient(#000 0.55px,transparent .7px);background-size:7px 7px}
+    .screen{position:absolute;z-index:3;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:25px;background:#f2f0e9ee;backdrop-filter:blur(5px)}
+    .kicker{margin:0 0 9px;color:var(--red);font-size:11px;font-weight:1000;letter-spacing:3px}
+    h1{margin:0;font-size:clamp(54px,16vw,105px);line-height:.82;letter-spacing:-7px;font-weight:1000}
+    h1 span{display:block;color:var(--red);font-size:.34em;line-height:1.2;letter-spacing:1px;margin-top:18px}
+    .desc{margin:20px 0;color:#525252;font-size:14px;font-weight:700;line-height:1.8}
+    button{border:0;border-radius:999px;background:var(--black);color:#fff;padding:17px 28px;min-width:225px;font-size:16px;font-weight:900;box-shadow:0 10px 28px #0003}
+    .back{margin-top:15px;color:#555;font-size:12px;font-weight:800;text-decoration:none}
+    .result-title{font-size:clamp(47px,14vw,90px);letter-spacing:-5px}
+    .score{margin:13px 0 4px;font-size:clamp(72px,22vw,145px);font-weight:1000;line-height:.85;letter-spacing:-8px}
+    .score small{font-size:.2em;letter-spacing:0}
+    .reason{min-height:25px;margin:8px 0 19px;color:var(--red);font-weight:1000}
+    .best{margin:0 0 20px;font-size:12px;font-weight:900;letter-spacing:1px}
+    .name{width:min(260px,85%);margin:0 0 13px;border:2px solid #111;border-radius:999px;background:#fff;color:#111;padding:13px 17px;outline:0;font-size:16px;font-weight:800;text-align:center}
+    .subbtn{margin-top:10px;background:transparent;color:#111;border:2px solid #111;box-shadow:none;padding:12px 22px}
+    .rank{position:absolute;z-index:6;inset:0;padding:18px;background:#090909db;display:grid;place-items:center}
+    .rank-card{position:relative;width:min(410px,100%);max-height:92%;overflow:auto;border-radius:24px;background:var(--paper);padding:25px 20px}
+    .rank-card h2{margin:0 0 15px;font-size:35px;letter-spacing:-2px}.close{position:absolute;right:14px;top:14px;min-width:0;width:39px;height:39px;padding:0;border-radius:50%;font-size:24px}
+    .rank-list{list-style:none;margin:0;padding:0;counter-reset:r}.rank-list li{counter-increment:r;display:grid;grid-template-columns:32px 1fr auto;gap:8px;align-items:center;padding:11px 6px;border-bottom:1px solid #0002}.rank-list li:before{content:counter(r);font-weight:1000;color:#777}.rank-list li:nth-child(1):before{content:"🥇"}.rank-list li:nth-child(2):before{content:"🥈"}.rank-list li:nth-child(3):before{content:"🥉"}.rank-list span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}.rank-list strong{font-size:21px;color:var(--red)}.rank-status{font-size:12px;color:#777}
+    .countdown{position:absolute;z-index:2;inset:0;display:grid;place-items:center;font-size:clamp(100px,36vw,250px);font-weight:1000;pointer-events:none;color:var(--black)}
+    .warning{position:absolute;z-index:2;left:50%;top:20px;translate:-50% 0;padding:7px 13px;border-radius:999px;background:var(--red);color:white;font-size:11px;font-weight:1000;letter-spacing:1px;pointer-events:none;animation:pulse .45s infinite alternate}
+    [hidden]{display:none!important}
+    @keyframes pulse{to{scale:1.08}}
+    @media(max-height:620px){.desc{margin:11px 0;font-size:12px}.screen{padding:15px}h1{font-size:48px}.score{font-size:65px}.back{margin-top:9px}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">BLACK<span>OUT</span></div>
+      <div class="stat"><small>TIME</small><strong id="time">20.0</strong></div>
+      <div class="stat"><small>PAINT</small><strong><span id="paint">0.0</span>%</strong></div>
+    </header>
+    <section id="arena" class="arena" aria-label="黒く塗るゲームエリア">
+      <canvas id="canvas"></canvas>
+      <div class="noise"></div>
+      <div id="countdown" class="countdown" hidden></div>
+      <div id="warning" class="warning" hidden>指を離すな</div>
+      <div id="intro" class="screen">
+        <p class="kicker">EXTREME FINGER GAME</p>
+        <h1>黒く<br>塗りつぶせ<span>重なったら即終了</span></h1>
+        <p class="desc">20秒で塗った面積を競え。<br>自分の線に触れるな。指も離すな。</p>
+        <input id="playerName" class="name" maxlength="12" placeholder="なまえ" autocomplete="nickname">
+        <button id="startBtn">激むずに挑戦 →</button>
+        <button id="introRankBtn" class="subbtn">世界ランキング</button>
+      </div>
+      <div id="result" class="screen" hidden>
+        <p class="kicker">GAME OVER</p>
+        <h2 class="result-title">終了。</h2>
+        <div class="score"><span id="finalScore">0.0</span><small>%</small></div>
+        <div id="reason" class="reason">黒に触れた</div>
+        <p class="best">BEST <span id="best">0.0</span>%</p>
+        <button id="retryBtn">もう一度 →</button>
+        <button id="resultRankBtn" class="subbtn">世界ランキング</button>
+      </div>
+      <section id="ranking" class="rank" hidden>
+        <div class="rank-card">
+          <button id="closeRankBtn" class="close" aria-label="閉じる">×</button>
+          <p class="kicker">GLOBAL TOP 10</p>
+          <h2>世界ランキング</h2>
+          <ol id="rankList" class="rank-list"></ol>
+          <p id="rankStatus" class="rank-status">読み込み中…</p>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const DURATION=20, BRUSH=22, CELL=5, SAFE_DISTANCE=46;
+      const SUPABASE_URL="https://nhkiwmworkfbfkxcgrcf.supabase.co";
+      const SUPABASE_KEY="sb_publishable_1_g4MJPd99GF0YHeGyS0VA_H9CvIkGI";
+      const $=id=>document.getElementById(id);
+      const arena=$("arena"), canvas=$("canvas"), ctx=canvas.getContext("2d");
+      const intro=$("intro"), result=$("result"), countdown=$("countdown"), warning=$("warning"),nameEl=$("playerName");
+      let grid,cols,rows,painted=0,total=1,running=false,pointerId=null,last=null,distance=0,startAt=0,raf=0,dpr=1;
+
+      function resize(){
+        const r=arena.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,2);
+        canvas.width=Math.round(r.width*dpr); canvas.height=Math.round(r.height*dpr);
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        cols=Math.ceil(r.width/CELL); rows=Math.ceil(r.height/CELL);
+        grid=new Uint32Array(cols*rows); total=cols*rows; painted=0;
+        ctx.clearRect(0,0,r.width,r.height);
+      }
+      function point(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+      function cellHit(x,y){
+        const cx=Math.floor(x/CELL),cy=Math.floor(y/CELL),rad=Math.ceil((BRUSH*.48)/CELL);
+        for(let yy=cy-rad;yy<=cy+rad;yy++)for(let xx=cx-rad;xx<=cx+rad;xx++){
+          if(xx<0||yy<0||xx>=cols||yy>=rows)continue;
+          const dx=(xx+.5)*CELL-x,dy=(yy+.5)*CELL-y;
+          const stamp=grid[yy*cols+xx];
+          if(dx*dx+dy*dy<(BRUSH*.42)**2&&stamp&&stamp<Math.max(1,distance-SAFE_DISTANCE))return true;
+        }
+        return false;
+      }
+      function mark(x,y){
+        const cx=Math.floor(x/CELL),cy=Math.floor(y/CELL),rad=Math.ceil((BRUSH/2)/CELL);
+        for(let yy=cy-rad;yy<=cy+rad;yy++)for(let xx=cx-rad;xx<=cx+rad;xx++){
+          if(xx<0||yy<0||xx>=cols||yy>=rows)continue;
+          const dx=(xx+.5)*CELL-x,dy=(yy+.5)*CELL-y,i=yy*cols+xx;
+          if(dx*dx+dy*dy<(BRUSH/2)**2&&!grid[i]){grid[i]=Math.max(1,Math.floor(distance));painted++}
+        }
+      }
+      function drawSegment(a,b){
+        const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),steps=Math.max(1,Math.ceil(len/3));
+        for(let i=1;i<=steps;i++){
+          const x=a.x+dx*i/steps,y=a.y+dy*i/steps;
+          if(distance>SAFE_DISTANCE&&cellHit(x,y)){end("黒に触れた");return false}
+          mark(x,y); distance+=len/steps;
+        }
+        ctx.strokeStyle="#090909";ctx.lineWidth=BRUSH;ctx.lineCap="round";ctx.lineJoin="round";
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+        $("paint").textContent=(painted/total*100).toFixed(1);return true;
+      }
+      function onDown(e){
+        if(!running||pointerId!==null)return;
+        pointerId=e.pointerId;canvas.setPointerCapture(pointerId);last=point(e);mark(last.x,last.y);
+        ctx.fillStyle="#090909";ctx.beginPath();ctx.arc(last.x,last.y,BRUSH/2,0,Math.PI*2);ctx.fill();
+        warning.hidden=true;
+      }
+      function onMove(e){
+        if(!running||e.pointerId!==pointerId||!last)return;
+        const p=point(e);if(Math.hypot(p.x-last.x,p.y-last.y)<1)return;
+        if(drawSegment(last,p))last=p;
+      }
+      function onUp(e){if(running&&e.pointerId===pointerId)end("指を離した")}
+      function tick(now){
+        if(!running)return;const left=Math.max(0,DURATION-(now-startAt)/1000);
+        $("time").textContent=left.toFixed(1);
+        if(left<=0)end("20秒クリア！");else raf=requestAnimationFrame(tick);
+      }
+      async function submitScore(score){
+        const player=(localStorage.blackoutName||"PLAYER").slice(0,12);
+        try{await fetch(`${SUPABASE_URL}/rest/v1/blackout_scores`,{method:"POST",headers:{"apikey":SUPABASE_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify({player_name:player,score:Math.round(score*10)})})}catch{}
+      }
+      async function loadRanking(){
+        const list=$("rankList"),status=$("rankStatus");list.replaceChildren();status.textContent="読み込み中…";
+        try{
+          const res=await fetch(`${SUPABASE_URL}/rest/v1/blackout_scores?select=player_name,score,created_at&order=score.desc,created_at.asc&limit=10`,{headers:{"apikey":SUPABASE_KEY}});
+          if(!res.ok)throw Error();const rows=await res.json();
+          rows.forEach(row=>{const li=document.createElement("li"),name=document.createElement("span"),score=document.createElement("strong");name.textContent=row.player_name;score.textContent=(row.score/10).toFixed(1)+"%";li.append(name,score);list.append(li)});
+          status.textContent=rows.length?"世界上位10記録":"まだ記録がありません。世界1位になろう！";
+        }catch{status.textContent="ランキング準備中です"}
+      }
+      function openRanking(){$("ranking").hidden=false;loadRanking()}
+      function end(why){
+        if(!running)return;running=false;cancelAnimationFrame(raf);pointerId=null;
+        const score=painted/total*100,best=Math.max(score,Number(localStorage.blackoutBest||0));
+        localStorage.blackoutBest=best.toFixed(1);
+        $("finalScore").textContent=score.toFixed(1);$("best").textContent=best.toFixed(1);$("reason").textContent=why;
+        setTimeout(()=>result.hidden=false,180);
+        if(navigator.vibrate)navigator.vibrate(why==="20秒クリア！"?[40,40,80]:180);
+        submitScore(score);
+      }
+      async function start(){
+        localStorage.blackoutName=(nameEl.value.trim()||"PLAYER").slice(0,12);
+        resize();intro.hidden=true;result.hidden=true;countdown.hidden=false;
+        for(const n of ["3","2","1"]){countdown.textContent=n;await new Promise(r=>setTimeout(r,520))}
+        countdown.textContent="GO";await new Promise(r=>setTimeout(r,260));countdown.hidden=true;
+        running=true;pointerId=null;last=null;distance=0;startAt=performance.now();warning.hidden=false;
+        $("time").textContent=DURATION.toFixed(1);$("paint").textContent="0.0";raf=requestAnimationFrame(tick);
+      }
+      canvas.addEventListener("pointerdown",onDown);
+      canvas.addEventListener("pointermove",onMove);
+      canvas.addEventListener("pointerup",onUp);
+      canvas.addEventListener("pointercancel",onUp);
+      nameEl.value=localStorage.blackoutName||"";
+      $("startBtn").addEventListener("click",start);$("retryBtn").addEventListener("click",start);
+      $("introRankBtn").addEventListener("click",openRanking);$("resultRankBtn").addEventListener("click",openRanking);
+      $("closeRankBtn").addEventListener("click",()=>$("ranking").hidden=true);
+      $("ranking").addEventListener("click",e=>{if(e.target.id==="ranking")e.currentTarget.hidden=true});
+      addEventListener("resize",()=>{if(!running)resize()});resize();
+    })();
+  </script>
+</body>
+</html>
