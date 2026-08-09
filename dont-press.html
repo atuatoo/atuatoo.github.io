@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#09090b">
+  <title>絶対押すな — 30秒の誘惑</title>
+  <meta name="description" content="赤いボタンは絶対に押すな。青だけを狙って30秒生き残れ。">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JBQZ5L4VN6"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-JBQZ5L4VN6');</script>
+  <style>
+    :root{--red:#ff2038;--blue:#2878ff;--ink:#09090b;--paper:#f7f4ed}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
+    button{font:inherit}.app{height:100dvh;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));display:grid;grid-template-rows:auto 1fr;gap:10px}
+    header{display:flex;justify-content:space-between;align-items:center;color:#fff;padding:2px 5px}.brand{font-size:19px;font-weight:1000;letter-spacing:-1px}.brand b{color:var(--red)}
+    .stats{display:flex;gap:16px}.stat{text-align:right}.stat small{display:block;color:#777;font-size:8px;font-weight:900;letter-spacing:1px}.stat strong{font-size:22px;font-variant-numeric:tabular-nums}
+    .arena{position:relative;min-height:0;overflow:hidden;border-radius:25px;background:var(--paper);border:3px solid #fff;touch-action:none}
+    .grain{position:absolute;inset:0;pointer-events:none;opacity:.12;background-image:radial-gradient(#000 0.6px,transparent .7px);background-size:7px 7px}
+    .danger{position:absolute;z-index:2;left:50%;top:48%;translate:-50% -50%;width:clamp(145px,40vw,210px);aspect-ratio:1;border:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff6373,var(--red) 47%,#a60016 75%);color:#fff;font-size:clamp(19px,5vw,28px);font-weight:1000;box-shadow:0 14px 0 #75000f,0 28px 55px #ff203855;transition:.18s;animation:breathe 1.2s infinite alternate}
+    .danger:active{translate:-50% calc(-50% + 10px);box-shadow:0 4px 0 #75000f}.danger.tease{scale:1.14}.danger small{display:block;font-size:.42em;margin-top:5px}
+    .safe{position:absolute;z-index:4;width:clamp(52px,14vw,70px);aspect-ratio:1;border:4px solid #fff;border-radius:50%;background:var(--blue);color:#fff;font-size:24px;font-weight:1000;box-shadow:0 8px 22px #2878ff66;animation:pop .18s both}
+    .fake{position:absolute;z-index:3;width:52px;aspect-ratio:1;border:0;border-radius:50%;background:var(--red);color:#fff;font-weight:1000;box-shadow:0 5px 15px #ff203844;animation:pop .18s both}
+    .message{position:absolute;z-index:5;left:50%;top:20px;translate:-50%;width:90%;text-align:center;font-size:clamp(17px,5vw,25px);font-weight:1000;letter-spacing:-1px;pointer-events:none}.message.bad{color:var(--red)}
+    .panel{position:absolute;z-index:10;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:25px;background:#f7f4edee;backdrop-filter:blur(8px)}
+    [hidden]{display:none!important}.eyebrow{margin:0 0 12px;color:var(--red);font-size:11px;font-weight:1000;letter-spacing:3px}.panel h1,.panel h2{margin:0;font-size:clamp(48px,14vw,90px);line-height:.88;letter-spacing:-5px}.panel h1 b{display:block;color:var(--red)}
+    .panel p.desc{margin:20px 0;color:#555;font-size:14px;font-weight:700;line-height:1.8}.start{border:0;border-radius:999px;background:var(--ink);color:#fff;padding:17px 28px;min-width:225px;font-size:16px;font-weight:1000;box-shadow:0 10px 25px #0003}
+    .score{margin:16px 0 4px;font-size:clamp(85px,25vw,150px);font-weight:1000;line-height:.8;letter-spacing:-9px}.score small{font-size:.17em;letter-spacing:0}.reason{min-height:24px;margin:10px 0 20px;color:var(--red);font-weight:1000}.best{font-size:12px;font-weight:900;margin-bottom:18px}
+    @keyframes breathe{to{scale:1.035}}@keyframes pop{from{scale:.2;opacity:0}to{scale:1;opacity:1}}
+    @media(max-height:620px){.panel p.desc{margin:10px 0}.panel h1,.panel h2{font-size:48px}.score{font-size:72px}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header><div class="brand">絶対<b>押すな</b></div><div class="stats"><div class="stat"><small>TIME</small><strong id="time">30.0</strong></div><div class="stat"><small>SCORE</small><strong id="score">0</strong></div></div></header>
+  <section class="arena" id="arena">
+    <div class="grain"></div><div class="message" id="message">赤は絶対に押すな</div>
+    <button class="danger" id="danger">押すな<small>本当に。</small></button>
+    <div class="panel" id="intro"><p class="eyebrow">DO NOT PRESS</p><h1>絶対に<b>押すな。</b></h1><p class="desc">青い丸だけを押して30秒耐えろ。<br>赤に触れた瞬間、すべて終了。</p><button class="start" id="start">誘惑に耐える →</button></div>
+    <div class="panel" id="result" hidden><p class="eyebrow">GAME OVER</p><h2 id="resultTitle">押したな。</h2><div class="score"><span id="final">0</span><small>点</small></div><div class="reason" id="reason">赤を押した</div><div class="best">BEST <span id="best">0</span>点</div><button class="start" id="retry">もう一度 →</button></div>
+  </section>
+</main>
+<script>
+(()=>{
+ const $=id=>document.getElementById(id),arena=$('arena'),danger=$('danger'),message=$('message');
+ let running=false,score=0,startAt=0,raf=0,safe=null,fakes=[],nextAt=0;
+ const phrases=['赤は絶対に押すな','青だけ押せ','赤が正解かも？','今なら押していい','残りわずか','その赤、本物？','誘惑に負けるな'];
+ function pos(el,pad=18){const r=arena.getBoundingClientRect(),w=el.offsetWidth||60,h=el.offsetHeight||60;el.style.left=pad+Math.random()*Math.max(1,r.width-w-pad*2)+'px';el.style.top=70+Math.random()*Math.max(1,r.height-h-95)+'px'}
+ function clearTargets(){safe?.remove();safe=null;fakes.forEach(x=>x.remove());fakes=[]}
+ function spawn(){clearTargets();safe=document.createElement('button');safe.className='safe';safe.textContent='✓';safe.ariaLabel='青い丸';arena.appendChild(safe);pos(safe);safe.onpointerdown=e=>{e.stopPropagation();if(!running)return;score++;$('score').textContent=score;navigator.vibrate?.(10);spawn()};
+   const count=Math.min(7,Math.floor(score/3)+Math.floor((performance.now()-startAt)/7000));for(let i=0;i<count;i++){const f=document.createElement('button');f.className='fake';f.textContent=i%2?'✓':'!';arena.appendChild(f);pos(f);f.onpointerdown=e=>{e.stopPropagation();end('偽物の赤を押した')};fakes.push(f)}
+   message.textContent=phrases[Math.floor(Math.random()*phrases.length)];message.classList.toggle('bad',Math.random()>.65);danger.classList.toggle('tease',Math.random()>.6);
+ }
+ function start(){score=0;$('score').textContent=0;$('time').textContent='30.0';$('intro').hidden=true;$('result').hidden=true;running=true;startAt=performance.now();nextAt=0;spawn();cancelAnimationFrame(raf);tick();gtag?.('event','game_start',{game_name:'dont_press'})}
+ function tick(now=performance.now()){if(!running)return;const elapsed=(now-startAt)/1000,left=Math.max(0,30-elapsed);$('time').textContent=left.toFixed(1);if(left<=0)return end('30秒クリア！',true);if(now>nextAt){nextAt=now+Math.max(700,1700-elapsed*28);if(safe)pos(safe);fakes.forEach(pos)}raf=requestAnimationFrame(tick)}
+ function end(why,clear=false){if(!running)return;running=false;cancelAnimationFrame(raf);clearTargets();const best=Math.max(score,Number(localStorage.dontPressBest||0));localStorage.dontPressBest=best;$('final').textContent=score;$('best').textContent=best;$('reason').textContent=why;$('resultTitle').textContent=clear?'耐えきった。':'押したな。';$('result').hidden=false;navigator.vibrate?.(clear?[50,40,100]:200);gtag?.('event','game_finish',{game_name:'dont_press',score,clear})}
+ danger.onpointerdown=e=>{e.stopPropagation();end('大きな赤を押した')};$('start').onclick=start;$('retry').onclick=start;
+})();
+</script>
+</body>
+</html>
