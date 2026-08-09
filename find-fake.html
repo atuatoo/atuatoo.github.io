@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#faf8f1">
+<title>見破れ。— 1つだけ違う</title>
+<meta name="description" content="同じものの中に隠れた1つだけ違う偽物を10秒で見破れ。">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JBQZ5L4VN6"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-JBQZ5L4VN6');</script>
+<style>
+:root{--ink:#101012;--paper:#faf8f1;--red:#ff314d;--green:#20b878}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;color:var(--ink)}
+button,input{font:inherit}.app{height:100dvh;display:grid;grid-template-rows:auto 1fr;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));gap:9px}
+header{display:flex;align-items:center;justify-content:space-between;padding:0 6px}.brand{font-size:21px;font-weight:1000;letter-spacing:-1.5px}.brand b{color:var(--red)}
+.stats{display:flex;gap:15px}.stat{text-align:right}.stat small{display:block;font-size:8px;font-weight:900;color:#777;letter-spacing:1px}.stat strong{font-size:23px;font-variant-numeric:tabular-nums}
+.arena{position:relative;min-height:0;overflow:hidden;border:3px solid var(--ink);border-radius:25px;background:#fff;box-shadow:0 12px 40px #20181018}
+.message{position:absolute;z-index:3;left:50%;top:18px;translate:-50%;width:90%;text-align:center;font-size:14px;font-weight:1000;letter-spacing:1px;pointer-events:none}
+.grid{position:absolute;inset:66px 15px 18px;display:grid;place-content:center;gap:clamp(3px,1.2vw,8px)}
+.tile{display:grid;place-items:center;border:0;background:transparent;color:var(--ink);padding:0;font-weight:1000;line-height:1;cursor:pointer;animation:appear .13s both}
+.tile:active{scale:.84}.flash{animation:flash .23s}
+.panel{position:absolute;z-index:10;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px;background:#faf8f1ef;backdrop-filter:blur(7px)}
+[hidden]{display:none!important}.eyebrow{margin:0 0 11px;color:var(--red);font-size:11px;font-weight:1000;letter-spacing:3px}.panel h1,.panel h2{margin:0;font-size:clamp(58px,17vw,105px);line-height:.84;letter-spacing:-7px}.panel h1 b{display:block;color:var(--red);font-size:.43em;letter-spacing:-2px;margin-top:15px}
+.desc{margin:20px 0;color:#555;font-size:14px;font-weight:750;line-height:1.8}.name{width:min(260px,90%);margin-bottom:12px;padding:13px 16px;border:2px solid #ddd;border-radius:999px;text-align:center;font-weight:900;background:#fff}
+.start{border:0;border-radius:999px;background:var(--ink);color:#fff;padding:17px 28px;min-width:230px;font-size:16px;font-weight:1000;box-shadow:0 10px 27px #0003}
+.big-score{margin:17px 0 5px;font-size:clamp(95px,29vw,170px);font-weight:1000;line-height:.75;letter-spacing:-10px}.big-score small{font-size:.15em;letter-spacing:0}.reason{min-height:24px;margin:10px 0;color:var(--red);font-weight:1000}.best{margin:0 0 18px;font-size:12px;font-weight:900}.share{margin-top:9px;border:0;background:transparent;font-size:12px;font-weight:900;text-decoration:underline}
+@keyframes appear{from{opacity:0;scale:.55}to{opacity:1;scale:1}}@keyframes flash{50%{background:#dff9ed}}
+@media(max-height:620px){.desc{margin:10px 0}.panel h1,.panel h2{font-size:52px}.big-score{font-size:82px}.name{padding:9px}.start{padding:13px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header><div class="brand">見破れ<b>。</b></div><div class="stats"><div class="stat"><small>TIME</small><strong id="time">10.0</strong></div><div class="stat"><small>SCORE</small><strong id="score">0</strong></div></div></header>
+<section class="arena" id="arena">
+ <div class="message" id="message">1つだけ違うものを押せ</div><div class="grid" id="grid"></div>
+ <div class="panel" id="intro"><p class="eyebrow">FIND THE FAKE</p><h1>見破れ。<b>1つだけ違う</b></h1><p class="desc">偽物を見つけて押せ。制限時間10秒。<br>間違えた瞬間、即終了。</p><input class="name" id="player" maxlength="12" placeholder="なまえ（任意）"><button class="start" id="start">10秒勝負 →</button></div>
+ <div class="panel" id="result" hidden><p class="eyebrow">RESULT</p><h2 id="title">終了。</h2><div class="big-score"><span id="final">0</span><small>問</small></div><div class="reason" id="reason">時間切れ</div><div class="best">BEST <span id="best">0</span>問</div><button class="start" id="retry">もう一度 →</button><button class="share" id="share">結果をシェア</button></div>
+</section>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id),grid=$('grid'),arena=$('arena');
+const sets=[
+ ['99','96'],['88','89'],['69','68'],['OO','O0'],['口','ロ'],['未','末'],['日','目'],['犬','大'],['シ','ツ'],['ソ','ン'],
+ ['→','←'],['↑','↓'],['●','◉'],['◆','◇'],['🦟','🪰'],['😐','😑'],['🍎','🍅'],['🐶','🐺']
+];
+let running=false,score=0,startAt=0,raf=0,answer=-1,current=[];
+function layout(){const level=score,n=level<2?12:level<5?20:level<8?30:level<12?42:level<17?56:72;const cols=Math.ceil(Math.sqrt(n*1.05)),rows=Math.ceil(n/cols);grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.style.gridTemplateRows=`repeat(${rows},1fr)`;return{n,cols,rows}}
+function next(){const {n,cols,rows}=layout(),pair=sets[Math.min(sets.length-1,Math.floor(score/2))],normal=pair[0],fake=pair[1];answer=Math.floor(Math.random()*n);current=Array.from({length:n},(_,i)=>i===answer?fake:normal);grid.replaceChildren();const r=grid.getBoundingClientRect(),size=Math.min(r.width/cols,r.height/rows)*.68;
+ current.forEach((v,i)=>{const b=document.createElement('button');b.className='tile';b.textContent=v;b.style.fontSize=Math.max(17,Math.min(47,size))+'px';b.dataset.i=i;b.ariaLabel='候補 '+(i+1);grid.appendChild(b)});$('message').textContent=score<5?'1つだけ違うものを押せ':score<10?'よく見ろ。':'ほぼ同じ。';}
+function start(){score=0;$('score').textContent=0;$('time').textContent='10.0';$('intro').hidden=true;$('result').hidden=true;localStorage.fakeName=$('player').value.trim().slice(0,12);running=true;startAt=performance.now();next();cancelAnimationFrame(raf);tick();gtag?.('event','game_start',{game_name:'find_fake'})}
+function tick(now=performance.now()){if(!running)return;const left=Math.max(0,10-(now-startAt)/1000);$('time').textContent=left.toFixed(1);if(left<=0)return end('10秒終了',true);raf=requestAnimationFrame(tick)}
+function end(why,timeup=false){if(!running)return;running=false;cancelAnimationFrame(raf);const best=Math.max(score,Number(localStorage.fakeBest||0));localStorage.fakeBest=best;$('final').textContent=score;$('best').textContent=best;$('reason').textContent=why;$('title').textContent=timeup?'記録。':'見破れず。';$('result').hidden=false;navigator.vibrate?.(timeup?[30,40,70]:170);gtag?.('event','game_finish',{game_name:'find_fake',score,reason:why})}
+grid.addEventListener('pointerdown',e=>{const b=e.target.closest('.tile');if(!b||!running)return;e.preventDefault();if(Number(b.dataset.i)!==answer)return end('偽物ではなかった');score++;$('score').textContent=score;arena.classList.remove('flash');void arena.offsetWidth;arena.classList.add('flash');navigator.vibrate?.(10);next()});
+$('start').onclick=start;$('retry').onclick=start;$('player').value=localStorage.fakeName||'';
+$('share').onclick=async()=>{const text=`「見破れ。」10秒で${score}問正解！あなたは見つけられる？`;try{if(navigator.share)await navigator.share({title:'見破れ。',text,url:location.href});else await navigator.clipboard.writeText(text+' '+location.href)}catch{}};
+})();
+</script>
+</body>
+</html>
